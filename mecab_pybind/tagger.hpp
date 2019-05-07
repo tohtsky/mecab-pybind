@@ -8,6 +8,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h> // vector用
 #include <sstream>
+#include <thread>
+#include <tuple>
+#include <mutex>
+
 #define CHECK(eval) if (! eval) { \
    const char *e = eval ? eval->what() : MeCab::getTaggerError(); \
    std::cerr << "Exception:" << e << std::endl; \
@@ -31,10 +35,15 @@ struct TaggerWrapper {
     TaggerWrapper();
     TaggerWrapper(const std::string & arg);
     std::list<NodeWrapper> parse_to_node(const std::string & arg);
+    std::list<NodeWrapper> parse_to_node_with_lattice(const std::string & arg, MeCab::Lattice* lattice);
+    std::vector<std::list<NodeWrapper>> parse_to_node_parallel(
+        const std::vector<std::string> & arg, size_t n_workers);
+
     std::list<std::list<NodeWrapper>>
         parse_n_best(const std::string & arg, size_t n);
     private:
-    std::unique_ptr<MeCab::Tagger> base_tagger;
+    std::unique_ptr<MeCab::Model> model_;
+    std::unique_ptr<MeCab::Tagger> tagger_;
 
 };
 
